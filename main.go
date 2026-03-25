@@ -1,4 +1,4 @@
-package mobiletest
+package main
 
 import (
 	"log"
@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	ebiten.SetWindowSize(1080, 2480)
-	ebiten.SetWindowTitle("Hello, World!")
+	ebiten.SetWindowSize(270, 602) // 1080, 2480
+	ebiten.SetWindowTitle("note practice")
 
 	if err := ebiten.RunGame(notepractice.NewGame()); err != nil {
 		log.Fatal(err)
