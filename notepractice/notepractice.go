@@ -35,13 +35,13 @@ const (
 const scale = 1
 
 type Game struct {
-	images   map[string]*ebiten.Image
-	font     *text.GoTextFace
-	showNote bool
+	images map[string]*ebiten.Image
+	font   *text.GoTextFace
 
 	inputHandler *inputHandler
-	score        int
-	timer        float64
+	session      *session
+	buttons      *buttons
+	clickTimer   float64
 }
 
 func NewGame() *Game {
@@ -58,11 +58,10 @@ func NewGame() *Game {
 			"line":                LoadImage("res/line.png"),
 			"quitButton":          LoadImage("res/quit-button.png"),
 		},
-		font:     LoadFont("res/FSEX302.ttf"),
-		showNote: false,
-
+		font:         LoadFont("res/FSEX302.ttf"),
 		inputHandler: NewInputHandler(),
-		score:        0,
+		session:      NewSession(),
+		buttons:      NewButtons(),
 	}
 }
 
@@ -75,20 +74,47 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(clearColor)
 
+	if g.clickTimer > 0 {
+		g.clickTimer = g.clickTimer - 0.016
+		if g.clickTimer < 0 {
+			g.session.nextNote()
+			g.buttons.update(g.session)
+		}
+	}
+
 	if g.inputHandler.hasInput {
 		g.drawImage(screen, "noteButtonCorrect", g.inputHandler.pos)
+		clicked := false
+		for _, b := range g.buttons.allButtons {
+			if b.checkCollision(g.inputHandler.pos) {
+				clicked = true
+				if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
+					b.state = "correct"
+					g.session.score = g.session.score + 1
+				} else {
+					b.state = "incorrect"
+				}
+			} else {
+				b.state = "normal"
+			}
+		}
+		if clicked {
+			g.clickTimer = 1.0
+		}
 	}
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: unit}, darkHeaderColor)
 	g.drawText(screen, "note practice", Vector2{X: margin, Y: margin}, textColorLight)
+
 	// quit button
 	g.drawImage(screen, "quitButton", Vector2{X: 200, Y: 2})
 	g.drawText(screen, "quit", Vector2{X: 214, Y: 6}, textColorLight)
+
 	// drawScore
 	g.drawRect(screen, Vector2{X: 0, Y: unit}, Vector2{X: screenWidth, Y: unit}, headerColor)
-	g.drawText(screen, fmt.Sprintf("score: %d", g.score), Vector2{X: margin, Y: margin + unit}, textColorLight)
-	g.drawText(screen, fmt.Sprintf("time: %d", int(g.timer)), Vector2{X: 160, Y: margin + unit}, textColorLight)
+	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin + unit}, textColorLight)
+	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 160, Y: margin + unit}, textColorLight)
 
 	// treble
 	g.drawStave(screen, unit*4)
@@ -101,14 +127,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawImage(screen, "bassClef", Vector2{X: margin, Y: 292})
 
 	// draw note(s)
-	// g.drawNote(screen, session)
+	g.drawNote(screen, g.session)
 
 	// draw note buttons
 	g.drawRect(screen, Vector2{X: 0, Y: unit * 16}, Vector2{X: screenWidth, Y: unit * 5}, buttonBackgroundColor)
-
-	// for _, b := range buttons.allButtons {
-	// 	b.draw(assets)
-	// }
+	for _, b := range g.buttons.allButtons {
+		b.draw(screen, g)
+	}
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {
@@ -138,5 +163,36 @@ func (g *Game) drawStave(screen *ebiten.Image, startY float64) {
 	for i := range 5 {
 		var offset float64 = float64(i) * 24
 		g.drawImage(screen, "line", Vector2{X: linePos.X, Y: linePos.Y + offset})
+	}
+}
+
+func (g *Game) drawNote(screen *ebiten.Image, session *session) {
+	drawExtraLine := false
+	ypos := 0
+	if session.trebleBass == "treble" {
+		ypos = 229 - (session.index * 12)
+		drawExtraLine = session.index > 11 || session.index == 0
+	} else {
+		ypos = 397 + (12) - (session.index * 12)
+		drawExtraLine = session.index > 11 || session.index == 0
+	}
+
+	g.drawImage(screen, "note", Vector2{X: 180, Y: float64(ypos)})
+	// rl.DrawTextureEx(assets.note, rl.Vector2{X: 180, Y: float32(ypos)}, 0, 1, rl.White)
+
+	if drawExtraLine {
+		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11)}, rl.Vector2{X: 208, Y: float32(ypos + 11)}, lineColor)
+		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11 + 1)}, rl.Vector2{X: 208, Y: float32(ypos + 11 + 1)}, lineColor)
+		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11 + 2)}, rl.Vector2{X: 208, Y: float32(ypos + 11 + 2)}, lineColor)
+		// vector.StrokeLine(screen, )
+	}
+
+	switch session.sharpFlat {
+	case "sharp":
+		g.drawImage(screen, "sharp", Vector2{X: 152, Y: float64(ypos - 11)})
+		// rl.DrawTextureEx(assets.sharp, rl.Vector2{X: 152, Y: float32(ypos - 11)}, 0, 1, rl.White)
+	case "flat":
+		g.drawImage(screen, "flat", Vector2{X: 152, Y: float64(ypos - 20)})
+		// rl.DrawTextureEx(assets.flat, rl.Vector2{X: 154, Y: float32(ypos) - 20}, 0, 1, rl.White)
 	}
 }
