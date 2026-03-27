@@ -12,6 +12,7 @@ type session struct {
 	trebleBass  string // treble, bass
 	index       int
 	score       int
+	canScore    bool
 }
 
 func NewSession() *session {

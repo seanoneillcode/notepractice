@@ -56,6 +56,7 @@ func NewGame() *Game {
 			"trebleClef":          LoadImage("res/treble-clef.png"),
 			"bassClef":            LoadImage("res/bass-clef.png"),
 			"line":                LoadImage("res/line.png"),
+			"extraLine":           LoadImage("res/extra-line.png"),
 			"quitButton":          LoadImage("res/quit-button.png"),
 		},
 		font:         LoadFont("res/FSEX302.ttf"),
@@ -82,11 +83,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	if g.inputHandler.hasInput {
+	if g.inputHandler.hasInput && g.inputHandler.releasedInput && g.clickTimer <= 0 {
 		g.drawImage(screen, "noteButtonCorrect", g.inputHandler.pos)
 		clicked := false
 		for _, b := range g.buttons.allButtons {
 			if b.checkCollision(g.inputHandler.pos) {
+				g.session.canScore = false
 				clicked = true
 				if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
 					b.state = "correct"
@@ -101,6 +103,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		if clicked {
 			g.clickTimer = 1.0
 		}
+	}
+	if g.inputHandler.releasedInput {
+		g.session.canScore = true
 	}
 
 	// drawHeader
@@ -178,21 +183,15 @@ func (g *Game) drawNote(screen *ebiten.Image, session *session) {
 	}
 
 	g.drawImage(screen, "note", Vector2{X: 180, Y: float64(ypos)})
-	// rl.DrawTextureEx(assets.note, rl.Vector2{X: 180, Y: float32(ypos)}, 0, 1, rl.White)
 
 	if drawExtraLine {
-		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11)}, rl.Vector2{X: 208, Y: float32(ypos + 11)}, lineColor)
-		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11 + 1)}, rl.Vector2{X: 208, Y: float32(ypos + 11 + 1)}, lineColor)
-		// rl.DrawLineV(rl.Vector2{X: 174, Y: float32(ypos + 11 + 2)}, rl.Vector2{X: 208, Y: float32(ypos + 11 + 2)}, lineColor)
-		// vector.StrokeLine(screen, )
+		g.drawImage(screen, "extraLine", Vector2{X: 174, Y: float64(ypos + 11)})
 	}
 
 	switch session.sharpFlat {
 	case "sharp":
 		g.drawImage(screen, "sharp", Vector2{X: 152, Y: float64(ypos - 11)})
-		// rl.DrawTextureEx(assets.sharp, rl.Vector2{X: 152, Y: float32(ypos - 11)}, 0, 1, rl.White)
 	case "flat":
 		g.drawImage(screen, "flat", Vector2{X: 152, Y: float64(ypos - 20)})
-		// rl.DrawTextureEx(assets.flat, rl.Vector2{X: 154, Y: float32(ypos) - 20}, 0, 1, rl.White)
 	}
 }

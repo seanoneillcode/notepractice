@@ -16,8 +16,9 @@ type inputHandler struct {
 	touchIDs []ebiten.TouchID
 	touches  map[ebiten.TouchID]*touch
 
-	pos      Vector2
-	hasInput bool
+	pos           Vector2
+	hasInput      bool
+	releasedInput bool
 }
 
 func NewInputHandler() *inputHandler {
@@ -60,6 +61,9 @@ func (i *inputHandler) update() error {
 		i.hasInput = true
 		posx, posy := ebiten.CursorPosition()
 		i.pos.X, i.pos.Y = float64(posx), float64(posy)
+	}
+	if !i.hasInput {
+		i.releasedInput = true
 	}
 
 	return nil
