@@ -95,6 +95,7 @@ var imageNames = map[string]string{
 func (b *button) draw(screen *ebiten.Image, g *Game) {
 	image := "noteButton"
 	textColor := textColorDark
+	var textOffset float64 = 0
 	if b.state == "correct" {
 		image = "noteButtonCorrect"
 		textColor = coloredButtonTextColor
@@ -107,20 +108,25 @@ func (b *button) draw(screen *ebiten.Image, g *Game) {
 		image = "noteButtonActual"
 		textColor = coloredButtonTextColor
 	}
+	if b.state == "pressed" {
+		image = "noteButtonPressed"
+		// textColor = coloredButtonTextColor
+		textOffset = 4
+	}
 
 	// draw Button
 	g.drawImage(screen, image, b.pos)
 
 	// draw note letter
 	imageName := imageNames[b.note]
-	g.drawImageWithColor(screen, imageName, Vector2{X: b.pos.X + b.leftMargin, Y: b.pos.Y + topButtonMargin}, textColor)
+	g.drawImageWithColor(screen, imageName, Vector2{X: b.pos.X + b.leftMargin, Y: b.pos.Y + topButtonMargin + textOffset}, textColor)
 
 	// draw modifier
 	if b.sharpFlat == "sharp" {
-		g.drawImageWithColor(screen, "sharpmod", Vector2{X: b.pos.X + b.leftMargin + 18, Y: b.pos.Y + topButtonMargin - 6}, textColor)
+		g.drawImageWithColor(screen, "sharpmod", Vector2{X: b.pos.X + b.leftMargin + 18, Y: b.pos.Y + topButtonMargin - 6 + textOffset}, textColor)
 	}
 	if b.sharpFlat == "flat" {
-		g.drawImageWithColor(screen, "flatmod", Vector2{X: b.pos.X + b.leftMargin + 18, Y: b.pos.Y + topButtonMargin - 6}, textColor)
+		g.drawImageWithColor(screen, "flatmod", Vector2{X: b.pos.X + b.leftMargin + 18, Y: b.pos.Y + topButtonMargin - 6 + textOffset}, textColor)
 	}
 }
 

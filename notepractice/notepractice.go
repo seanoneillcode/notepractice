@@ -46,6 +46,7 @@ func NewGame() *Game {
 			"noteButtonCorrect":   LoadImage("res/note-button-correct.png"),
 			"noteButtonIncorrect": LoadImage("res/note-button-incorrect.png"),
 			"noteButtonActual":    LoadImage("res/note-button-actual.png"),
+			"noteButtonPressed":   LoadImage("res/note-button-pressed.png"),
 			"note":                LoadImage("res/note.png"),
 			"sharp":               LoadImage("res/sharp.png"),
 			"flat":                LoadImage("res/flat.png"),
@@ -129,6 +130,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.inputHandler.releasedInput {
 		g.session.canScore = true
+	}
+	if g.inputHandler.pressingDown {
+		for _, b := range g.buttons.allButtons {
+			if b.checkCollision(g.inputHandler.pos) {
+				b.state = "pressed"
+			}
+		}
 	}
 
 	// drawHeader

@@ -16,6 +16,7 @@ type inputHandler struct {
 
 	pos           Vector2
 	releasedInput bool
+	pressingDown  bool
 }
 
 func NewInputHandler() *inputHandler {
@@ -25,6 +26,7 @@ func NewInputHandler() *inputHandler {
 }
 
 func (i *inputHandler) update() error {
+	i.pressingDown = false
 	i.releasedInput = false
 	for id := range i.touches {
 		if inpututil.IsTouchJustReleased(id) {
@@ -50,10 +52,12 @@ func (i *inputHandler) update() error {
 	if len(i.touches) > 0 {
 		i.pos.X = float64(i.touches[0].currX)
 		i.pos.Y = float64(i.touches[0].currY)
+		i.pressingDown = true
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		posx, posy := ebiten.CursorPosition()
 		i.pos.X, i.pos.Y = float64(posx), float64(posy)
+		i.pressingDown = true
 	}
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		i.releasedInput = true
