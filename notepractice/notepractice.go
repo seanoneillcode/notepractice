@@ -10,11 +10,17 @@ import (
 )
 
 var darkHeaderColor = color.RGBA{20, 24, 26, 255}
-var clearColor = color.RGBA{223, 224, 232, 255}
-var buttonBackgroundColor = color.RGBA{163, 167, 194, 255}
-var textColorLight = color.RGBA{223, 224, 232, 255}
+
+// var clearColor = color.RGBA{223, 224, 232, 255}
+// var buttonBackgroundColor = color.RGBA{163, 167, 194, 255}
+var textColorLight = color.RGBA{247, 240, 221, 255}
 var textColorDark = color.RGBA{27, 21, 23, 255}
+
+// alt soft theme
 var coloredButtonTextColor = color.RGBA{255, 238, 131, 255}
+var buttonBackgroundColor = color.RGBA{157, 167, 173, 255}
+
+var clearColor = color.RGBA{234, 227, 208, 255}
 
 const (
 	unit                   = 30
