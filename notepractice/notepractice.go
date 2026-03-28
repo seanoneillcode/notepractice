@@ -11,16 +11,12 @@ import (
 
 var darkHeaderColor = color.RGBA{20, 24, 26, 255}
 var clearColor = color.RGBA{223, 224, 232, 255}
-var headerColor = color.RGBA{58, 63, 94, 255}
 var buttonBackgroundColor = color.RGBA{163, 167, 194, 255}
 var textColorLight = color.RGBA{223, 224, 232, 255}
 var textColorDark = color.RGBA{27, 21, 23, 255}
-var lineColor = color.RGBA{27, 21, 23, 255}
 var coloredButtonTextColor = color.RGBA{255, 238, 131, 255}
 
 const (
-	fontSize           = 16
-	fontSpacing        = 2
 	noteButtonFontSize = 24
 
 	unit                   = 30
@@ -50,6 +46,7 @@ func NewGame() *Game {
 			"noteButton":          LoadImage("res/note-button.png"),
 			"noteButtonCorrect":   LoadImage("res/note-button-correct.png"),
 			"noteButtonIncorrect": LoadImage("res/note-button-incorrect.png"),
+			"noteButtonActual":    LoadImage("res/note-button-actual.png"),
 			"note":                LoadImage("res/note.png"),
 			"sharp":               LoadImage("res/sharp.png"),
 			"flat":                LoadImage("res/flat.png"),
@@ -57,7 +54,16 @@ func NewGame() *Game {
 			"bassClef":            LoadImage("res/bass-clef.png"),
 			"line":                LoadImage("res/line.png"),
 			"extraLine":           LoadImage("res/extra-line.png"),
-			"quitButton":          LoadImage("res/quit-button.png"),
+			"guideButton":         LoadImage("res/guide-button.png"),
+			"noteA":               LoadImage("res/noteA.png"),
+			"noteB":               LoadImage("res/noteB.png"),
+			"noteC":               LoadImage("res/noteC.png"),
+			"noteD":               LoadImage("res/noteD.png"),
+			"noteE":               LoadImage("res/noteE.png"),
+			"noteF":               LoadImage("res/noteF.png"),
+			"noteG":               LoadImage("res/noteG.png"),
+			"sharpmod":            LoadImage("res/sharpmod.png"),
+			"flatmod":             LoadImage("res/flatmod.png"),
 		},
 		font:         LoadFont("res/FSEX302.ttf"),
 		inputHandler: NewInputHandler(),
@@ -79,29 +85,34 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.clickTimer = g.clickTimer - 0.016
 		if g.clickTimer < 0 {
 			g.session.nextNote()
-			g.buttons.update(g.session)
+			g.buttons.reset(g.session)
 		}
 	}
 
 	if g.inputHandler.hasInput && g.inputHandler.releasedInput && g.clickTimer <= 0 {
 		g.drawImage(screen, "noteButtonCorrect", g.inputHandler.pos)
-		clicked := false
+		clickedAnyButton := false
 		for _, b := range g.buttons.allButtons {
 			if b.checkCollision(g.inputHandler.pos) {
+				clickedAnyButton = true
 				g.session.canScore = false
-				clicked = true
 				if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
 					b.state = "correct"
 					g.session.score = g.session.score + 1
 				} else {
 					b.state = "incorrect"
 				}
-			} else {
-				b.state = "normal"
 			}
 		}
-		if clicked {
+		if clickedAnyButton {
 			g.clickTimer = 1.0
+			for _, b := range g.buttons.allButtons {
+				if b.state == "normal" {
+					if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
+						b.state = "actual"
+					}
+				}
+			}
 		}
 	}
 	if g.inputHandler.releasedInput {
@@ -110,16 +121,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: unit}, darkHeaderColor)
-	g.drawText(screen, "note practice", Vector2{X: margin, Y: margin}, textColorLight)
 
-	// quit button
-	g.drawImage(screen, "quitButton", Vector2{X: 200, Y: 2})
-	g.drawText(screen, "quit", Vector2{X: 214, Y: 6}, textColorLight)
+	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 2})
 
 	// drawScore
-	g.drawRect(screen, Vector2{X: 0, Y: unit}, Vector2{X: screenWidth, Y: unit}, headerColor)
-	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin + unit}, textColorLight)
-	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 160, Y: margin + unit}, textColorLight)
+	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin}, textColorLight)
+	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 140, Y: margin}, textColorLight)
 
 	// treble
 	g.drawStave(screen, unit*4)
@@ -135,10 +142,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawNote(screen, g.session)
 
 	// draw note buttons
-	g.drawRect(screen, Vector2{X: 0, Y: unit * 16}, Vector2{X: screenWidth, Y: unit * 5}, buttonBackgroundColor)
+	g.drawRect(screen, Vector2{X: 0, Y: unit * 15}, Vector2{X: screenWidth, Y: unit * 4}, buttonBackgroundColor)
 	for _, b := range g.buttons.allButtons {
 		b.draw(screen, g)
 	}
+
+	g.drawRect(screen, Vector2{Y: unit * 19}, Vector2{X: screenWidth, Y: unit * 2}, darkHeaderColor)
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {
@@ -149,6 +158,14 @@ func (g *Game) drawImage(screen *ebiten.Image, image string, pos Vector2) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(pos.X, pos.Y)
 	op.GeoM.Scale(scale, scale)
+	screen.DrawImage(g.images[image], op)
+}
+
+func (g *Game) drawImageWithColor(screen *ebiten.Image, image string, pos Vector2, color color.Color) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(pos.X, pos.Y)
+	op.GeoM.Scale(scale, scale)
+	op.ColorScale.ScaleWithColor(color)
 	screen.DrawImage(g.images[image], op)
 }
 
