@@ -36,6 +36,7 @@ type Game struct {
 	session      *session
 	buttons      *buttons
 	clickTimer   float64
+	showGuide    bool
 }
 
 func NewGame() *Game {
@@ -62,11 +63,14 @@ func NewGame() *Game {
 			"noteG":               LoadImage("res/noteG.png"),
 			"sharpmod":            LoadImage("res/sharpmod.png"),
 			"flatmod":             LoadImage("res/flatmod.png"),
+			"guideTreble":         LoadImage("res/guide-treble.png"),
+			"guideBass":           LoadImage("res/guide-bass.png"),
 		},
 		font:         LoadFont("res/FSEX302.ttf"),
 		inputHandler: NewInputHandler(),
 		session:      NewSession(),
 		buttons:      NewButtons(),
+		showGuide:    false,
 	}
 
 	g.session.nextNote()
@@ -92,8 +96,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	if g.inputHandler.hasInput && g.inputHandler.releasedInput {
+		// is clicking on guide button
+		if isPointInRect(g.inputHandler.pos, 232, 2, 32, 26) {
+			g.showGuide = !g.showGuide
+		}
+	}
 	if g.inputHandler.hasInput && g.inputHandler.releasedInput && g.clickTimer <= 0 {
-		g.drawImage(screen, "noteButtonCorrect", g.inputHandler.pos)
 		clickedAnyButton := false
 		for _, b := range g.buttons.allButtons {
 			if b.checkCollision(g.inputHandler.pos) {
@@ -146,6 +155,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawRect(screen, Vector2{X: 0, Y: unit * 15}, Vector2{X: screenWidth, Y: unit * 4}, buttonBackgroundColor)
 	for _, b := range g.buttons.allButtons {
 		b.draw(screen, g)
+	}
+
+	// note guide
+	if g.showGuide {
+		g.drawImage(screen, "guideTreble", Vector2{X: 78, Y: 82})
+		g.drawImage(screen, "guideBass", Vector2{X: 78, Y: 260})
 	}
 
 	g.drawRect(screen, Vector2{Y: unit * 19}, Vector2{X: screenWidth, Y: unit * 2}, darkHeaderColor)

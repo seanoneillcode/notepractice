@@ -125,12 +125,5 @@ func (b *button) draw(screen *ebiten.Image, g *Game) {
 }
 
 func (b *button) checkCollision(mpos Vector2) bool {
-	rx, ry, sx, sy := b.pos.X, b.pos.Y, b.size.X, b.size.Y
-	if mpos.X > rx+sx || mpos.X < rx {
-		return false
-	}
-	if mpos.Y > ry+sy || mpos.Y < ry {
-		return false
-	}
-	return true
+	return isPointInRect(mpos, b.pos.X, b.pos.Y, b.size.X, b.size.Y)
 }

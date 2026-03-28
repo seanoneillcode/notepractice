@@ -1,10 +1,8 @@
 # TODO
 
-hide/show guide
-exit without crashing - ebiten OK error ?
-
 # DONE
 
+hide/show guide
 proper chaaracters for buttons
 add icon
 remove quit button

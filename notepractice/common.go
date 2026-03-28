@@ -50,3 +50,13 @@ type Vector2 struct {
 	X float64
 	Y float64
 }
+
+func isPointInRect(point Vector2, rx, ry, sx, sy float64) bool {
+	if point.X > rx+sx || point.X < rx {
+		return false
+	}
+	if point.Y > ry+sy || point.Y < ry {
+		return false
+	}
+	return true
+}
