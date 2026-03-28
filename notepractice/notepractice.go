@@ -17,8 +17,6 @@ var textColorDark = color.RGBA{27, 21, 23, 255}
 var coloredButtonTextColor = color.RGBA{255, 238, 131, 255}
 
 const (
-	noteButtonFontSize = 24
-
 	unit                   = 30
 	margin                 = 8
 	screenWidth            = 270
@@ -41,7 +39,7 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	return &Game{
+	g := &Game{
 		images: map[string]*ebiten.Image{
 			"noteButton":          LoadImage("res/note-button.png"),
 			"noteButtonCorrect":   LoadImage("res/note-button-correct.png"),
@@ -70,6 +68,11 @@ func NewGame() *Game {
 		session:      NewSession(),
 		buttons:      NewButtons(),
 	}
+
+	g.session.nextNote()
+	g.buttons.reset(g.session)
+
+	return g
 }
 
 func (g *Game) Update() error {
@@ -121,22 +124,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: unit}, darkHeaderColor)
-
 	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 2})
 
 	// drawScore
 	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin}, textColorLight)
-	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 140, Y: margin}, textColorLight)
 
 	// treble
-	g.drawStave(screen, unit*4)
+	g.drawStave(screen, unit*3)
 
 	// bass
-	g.drawStave(screen, unit*10)
+	g.drawStave(screen, unit*9)
 
 	// draw clefs
-	g.drawImage(screen, "trebleClef", Vector2{X: margin, Y: 90})
-	g.drawImage(screen, "bassClef", Vector2{X: margin, Y: 292})
+	g.drawImage(screen, "trebleClef", Vector2{X: margin, Y: 60})
+	g.drawImage(screen, "bassClef", Vector2{X: margin, Y: 262})
 
 	// draw note(s)
 	g.drawNote(screen, g.session)
@@ -192,10 +193,10 @@ func (g *Game) drawNote(screen *ebiten.Image, session *session) {
 	drawExtraLine := false
 	ypos := 0
 	if session.trebleBass == "treble" {
-		ypos = 229 - (session.index * 12)
+		ypos = 200 - (session.index * 12)
 		drawExtraLine = session.index > 11 || session.index == 0
 	} else {
-		ypos = 397 + (12) - (session.index * 12)
+		ypos = 380 - (session.index * 12)
 		drawExtraLine = session.index > 11 || session.index == 0
 	}
 
