@@ -96,13 +96,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	if g.inputHandler.hasInput && g.inputHandler.releasedInput {
+	if g.inputHandler.releasedInput {
 		// is clicking on guide button
 		if isPointInRect(g.inputHandler.pos, 232, 2, 32, 26) {
 			g.showGuide = !g.showGuide
 		}
 	}
-	if g.inputHandler.hasInput && g.inputHandler.releasedInput && g.clickTimer <= 0 {
+	if g.inputHandler.releasedInput && g.clickTimer <= 0 {
 		clickedAnyButton := false
 		for _, b := range g.buttons.allButtons {
 			if b.checkCollision(g.inputHandler.pos) {
@@ -159,8 +159,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// note guide
 	if g.showGuide {
-		g.drawImage(screen, "guideTreble", Vector2{X: 78, Y: 82})
-		g.drawImage(screen, "guideBass", Vector2{X: 78, Y: 260})
+		g.drawImage(screen, "guideTreble", Vector2{X: 90, Y: 82})
+		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260})
 	}
 
 	g.drawRect(screen, Vector2{Y: unit * 19}, Vector2{X: screenWidth, Y: unit * 2}, darkHeaderColor)
