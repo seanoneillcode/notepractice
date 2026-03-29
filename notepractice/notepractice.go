@@ -140,7 +140,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.inputHandler.pressingDown {
 		for _, b := range g.buttons.allButtons {
 			if b.checkCollision(g.inputHandler.pos) {
-				b.state = "pressed"
+				if b.state == "normal" {
+					b.state = "pressed"
+				}
+				continue
+			}
+			if b.state == "pressed" {
+				b.state = "normal"
 			}
 		}
 	}
