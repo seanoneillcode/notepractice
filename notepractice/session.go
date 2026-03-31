@@ -21,6 +21,10 @@ func NewSession() *session {
 	}
 }
 
+func (s *session) update() {
+	s.timer = s.timer + 0.01666666 // ebiten is fixed update
+}
+
 func (s *session) nextNote() {
 	s.trebleBass = randString([]string{"treble", "bass"})
 	s.sharpFlat = randString([]string{"nothing", "sharp", "flat"})

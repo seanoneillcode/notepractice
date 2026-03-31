@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -36,7 +35,6 @@ const scale = 1
 
 type Game struct {
 	images map[string]*ebiten.Image
-	font   *text.GoTextFace
 
 	inputHandler *inputHandler
 	session      *session
@@ -72,8 +70,8 @@ func NewGame() *Game {
 			"flatmod":             LoadImage("res/flatmod.png"),
 			"guideTreble":         LoadImage("res/guide-treble.png"),
 			"guideBass":           LoadImage("res/guide-bass.png"),
+			"text-source":         LoadImage("res/text-source.png"),
 		},
-		font:         LoadFont("res/FSEX302.ttf"),
 		inputHandler: NewInputHandler(),
 		session:      NewSession(),
 		buttons:      NewButtons(),
@@ -88,6 +86,7 @@ func NewGame() *Game {
 
 func (g *Game) Update() error {
 	g.inputHandler.update()
+	g.session.update()
 	return nil
 }
 
@@ -156,7 +155,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 2})
 
 	// drawScore
-	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin}, textColorLight)
+	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin + 2}, textColorLight)           // textColorLight
+	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: margin + 100, Y: margin + 2}, textColorLight) // textColorLight
 
 	// treble
 	g.drawStave(screen, unit*3)
@@ -203,13 +203,6 @@ func (g *Game) drawImageWithColor(screen *ebiten.Image, image string, pos Vector
 	op.GeoM.Scale(scale, scale)
 	op.ColorScale.ScaleWithColor(color)
 	screen.DrawImage(g.images[image], op)
-}
-
-func (g *Game) drawText(screen *ebiten.Image, value string, pos Vector2, color color.Color) {
-	txtOp := &text.DrawOptions{}
-	txtOp.GeoM.Translate(pos.X, pos.Y)
-	txtOp.ColorScale.ScaleWithColor(color)
-	text.Draw(screen, value, g.font, txtOp)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
