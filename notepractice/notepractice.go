@@ -172,7 +172,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawNote(screen, g.session)
 
 	// draw note buttons
-	g.drawRect(screen, Vector2{X: 0, Y: unit * 15}, Vector2{X: screenWidth, Y: unit * 4}, buttonBackgroundColor)
+	g.drawRect(screen, Vector2{X: 0, Y: unit * 14.5}, Vector2{X: screenWidth, Y: unit * 6}, buttonBackgroundColor)
 	for _, b := range g.buttons.allButtons {
 		b.draw(screen, g)
 	}
@@ -183,7 +183,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260})
 	}
 
-	g.drawRect(screen, Vector2{Y: unit * 19}, Vector2{X: screenWidth, Y: unit * 2}, darkHeaderColor)
+	g.drawRect(screen, Vector2{Y: unit * 18.5}, Vector2{X: screenWidth, Y: unit * 3}, darkHeaderColor)
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {
