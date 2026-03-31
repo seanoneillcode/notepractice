@@ -25,6 +25,7 @@ const (
 	unit                   = 30
 	margin                 = 8
 	screenWidth            = 270
+	screenHeight           = 602
 	noteButtonSharpsOffset = 18
 	noteButtonWidth        = 36
 	buttonMargin           = 2
@@ -42,7 +43,13 @@ type Game struct {
 	buttons      *buttons
 	clickTimer   float64
 	showGuide    bool
+
+	lastScore int
+	mode      string // running, menu
 }
+
+const runningMode = "running"
+const menuMode = "menu"
 
 func NewGame() *Game {
 	g := &Game{
@@ -52,6 +59,7 @@ func NewGame() *Game {
 			"noteButtonIncorrect": LoadImage("res/note-button-incorrect.png"),
 			"noteButtonActual":    LoadImage("res/note-button-actual.png"),
 			"noteButtonPressed":   LoadImage("res/note-button-pressed.png"),
+			"startButton":         LoadImage("res/start-button.png"),
 			"note":                LoadImage("res/note.png"),
 			"sharp":               LoadImage("res/sharp.png"),
 			"flat":                LoadImage("res/flat.png"),
@@ -60,7 +68,6 @@ func NewGame() *Game {
 			"line":                LoadImage("res/line.png"),
 			"extraLine":           LoadImage("res/extra-line.png"),
 			"guideButton":         LoadImage("res/guide-button.png"),
-			"menuButton":          LoadImage("res/menu-button.png"),
 			"noteA":               LoadImage("res/noteA.png"),
 			"noteB":               LoadImage("res/noteB.png"),
 			"noteC":               LoadImage("res/noteC.png"),
@@ -78,9 +85,11 @@ func NewGame() *Game {
 		session:      NewSession(),
 		buttons:      NewButtons(),
 		showGuide:    false,
+		mode:         "menu",
+		lastScore:    0,
 	}
 
-	g.session.nextNote()
+	g.session.reset()
 	g.buttons.reset(g.session)
 
 	return g
@@ -88,7 +97,77 @@ func NewGame() *Game {
 
 func (g *Game) Update() error {
 	g.inputHandler.update()
-	g.session.update()
+	if g.mode == menuMode {
+		if g.inputHandler.releasedInput {
+			// is clicking on start button
+			if isPointInRect(g.inputHandler.pos, unit*2-4, unit*12, 160, 52) {
+				g.mode = runningMode
+				g.session.reset()
+				g.buttons.reset(g.session)
+			}
+		}
+	}
+	if g.mode == runningMode {
+		g.session.update()
+		if g.session.timer < 1 {
+			g.mode = menuMode
+			g.lastScore = g.session.score
+		}
+		if g.clickTimer > 0 {
+			g.clickTimer = g.clickTimer - 0.016
+			if g.clickTimer < 0 {
+				g.session.nextNote()
+				g.buttons.reset(g.session)
+			}
+		}
+		if g.inputHandler.releasedInput {
+			// is clicking on guide button
+			if isPointInRect(g.inputHandler.pos, 232, 12, 32, 26) {
+				g.showGuide = !g.showGuide
+			}
+		}
+		if g.inputHandler.releasedInput && g.clickTimer <= 0 {
+			clickedAnyButton := false
+			for _, b := range g.buttons.allButtons {
+				if b.checkCollision(g.inputHandler.pos) {
+					clickedAnyButton = true
+					g.session.canScore = false
+					if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
+						b.state = "correct"
+						g.session.score = g.session.score + 1
+					} else {
+						b.state = "incorrect"
+					}
+				}
+			}
+			if clickedAnyButton {
+				g.clickTimer = 1.0
+				for _, b := range g.buttons.allButtons {
+					if b.state == "normal" {
+						if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
+							b.state = "actual"
+						}
+					}
+				}
+			}
+		}
+		if g.inputHandler.releasedInput {
+			g.session.canScore = true
+		}
+		if g.inputHandler.pressingDown {
+			for _, b := range g.buttons.allButtons {
+				if b.checkCollision(g.inputHandler.pos) {
+					if b.state == "normal" {
+						b.state = "pressed"
+					}
+					continue
+				}
+				if b.state == "pressed" {
+					b.state = "normal"
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -96,70 +175,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(clearColor)
 
-	if g.clickTimer > 0 {
-		g.clickTimer = g.clickTimer - 0.016
-		if g.clickTimer < 0 {
-			g.session.nextNote()
-			g.buttons.reset(g.session)
-		}
-	}
-
-	if g.inputHandler.releasedInput {
-		// is clicking on guide button
-		if isPointInRect(g.inputHandler.pos, 232, 2, 32, 26) {
-			g.showGuide = !g.showGuide
-		}
-	}
-	if g.inputHandler.releasedInput && g.clickTimer <= 0 {
-		clickedAnyButton := false
-		for _, b := range g.buttons.allButtons {
-			if b.checkCollision(g.inputHandler.pos) {
-				clickedAnyButton = true
-				g.session.canScore = false
-				if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
-					b.state = "correct"
-					g.session.score = g.session.score + 1
-				} else {
-					b.state = "incorrect"
-				}
-			}
-		}
-		if clickedAnyButton {
-			g.clickTimer = 1.0
-			for _, b := range g.buttons.allButtons {
-				if b.state == "normal" {
-					if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
-						b.state = "actual"
-					}
-				}
-			}
-		}
-	}
-	if g.inputHandler.releasedInput {
-		g.session.canScore = true
-	}
-	if g.inputHandler.pressingDown {
-		for _, b := range g.buttons.allButtons {
-			if b.checkCollision(g.inputHandler.pos) {
-				if b.state == "normal" {
-					b.state = "pressed"
-				}
-				continue
-			}
-			if b.state == "pressed" {
-				b.state = "normal"
-			}
-		}
-	}
-
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkHeaderColor)
 	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
-	g.drawImage(screen, "menuButton", Vector2{X: 8, Y: 12})
 
 	// drawScore
-	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: 48, Y: 22}, textColorLight)      // textColorLight
-	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 160, Y: 22}, textColorLight) // textColorLight
+	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: 22}, textColorLight, 1)                                    // textColorLight
+	g.drawText(screen, fmt.Sprintf("time: %dm %2ds", int(g.session.timer/60), int(g.session.timer)%60), Vector2{X: 100, Y: 22}, textColorLight, 1) // textColorLight
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
@@ -182,11 +204,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// note guide
 	if g.showGuide {
-		g.drawImage(screen, "guideTreble", Vector2{X: 90, Y: 82})
-		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260})
+		g.drawImage(screen, "guideTreble", Vector2{X: 90, Y: 82 + offsetY})
+		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260 + offsetY})
 	}
 
 	g.drawRect(screen, Vector2{Y: unit*18.5 + offsetY}, Vector2{X: screenWidth, Y: unit*3 + offsetY}, darkHeaderColor)
+
+	if g.mode == menuMode {
+		g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: screenHeight}, darkHeaderColor)
+		var scoreOffset float64 = 24
+		if g.lastScore > 9 {
+			scoreOffset = 12
+		}
+		g.drawText(screen, fmt.Sprintf("%d", g.lastScore), Vector2{X: unit*2 + scoreOffset, Y: unit * 6}, textColorLight, 4)
+		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 4, Y: unit * 12})
+	}
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {

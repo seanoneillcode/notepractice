@@ -11,11 +11,12 @@ var (
 	textCharacterImages = map[rune]*ebiten.Image{}
 )
 
-func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color color.Color) {
+func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color color.Color, scale float64) {
 	op := &ebiten.DrawImageOptions{}
 	op.ColorScale.ScaleWithColor(color)
+	op.GeoM.Scale(scale, scale)
+	op.GeoM.Translate(pos.X, pos.Y)
 
-	x := 0
 	y := 0
 	const (
 		cw = 10
@@ -23,8 +24,7 @@ func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color col
 	)
 	for _, c := range str {
 		if c == '\n' {
-			x = 0
-			y += ch
+			y = ch
 			continue
 		}
 		s, ok := textCharacterImages[c]
@@ -53,7 +53,7 @@ func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color col
 				index = 40
 			}
 			if c == ' ' {
-				x += cw - 5
+				op.GeoM.Translate(float64((cw-5))*scale, 0)
 			}
 			if index != -1 {
 				sx := index * cw
@@ -63,13 +63,8 @@ func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color col
 			}
 		}
 		if s != nil {
-			op.GeoM.Reset()
-			op.GeoM.Translate(pos.X, pos.Y)
-			op.GeoM.Translate(float64(x), float64(y))
-			op.GeoM.Scale(scale, scale)
-
+			op.GeoM.Translate(float64((cw-3))*scale, float64(y)*scale)
 			screen.DrawImage(s, op)
-			x += cw - 3
 		}
 	}
 }

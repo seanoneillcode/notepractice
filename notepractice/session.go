@@ -22,7 +22,14 @@ func NewSession() *session {
 }
 
 func (s *session) update() {
-	s.timer = s.timer + 0.01666666 // ebiten is fixed update
+	s.timer = s.timer - 0.01666666 // ebiten is fixed update
+}
+
+func (s *session) reset() {
+	s.state = "reading"
+	s.timer = 120 // 2 mins
+	s.score = 0
+	s.nextNote()
 }
 
 func (s *session) nextNote() {
