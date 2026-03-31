@@ -59,6 +59,7 @@ func NewGame() *Game {
 			"line":                LoadImage("res/line.png"),
 			"extraLine":           LoadImage("res/extra-line.png"),
 			"guideButton":         LoadImage("res/guide-button.png"),
+			"menuButton":          LoadImage("res/menu-button.png"),
 			"noteA":               LoadImage("res/noteA.png"),
 			"noteB":               LoadImage("res/noteB.png"),
 			"noteC":               LoadImage("res/noteC.png"),
@@ -151,12 +152,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	// drawHeader
-	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: unit}, darkHeaderColor)
-	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 2})
+	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkHeaderColor)
+	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
+	g.drawImage(screen, "menuButton", Vector2{X: 8, Y: 12})
 
 	// drawScore
-	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: margin + 2}, textColorLight)           // textColorLight
-	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: margin + 100, Y: margin + 2}, textColorLight) // textColorLight
+	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: 48, Y: 22}, textColorLight)      // textColorLight
+	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 160, Y: 22}, textColorLight) // textColorLight
 
 	// treble
 	g.drawStave(screen, unit*3)

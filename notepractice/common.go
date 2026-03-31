@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-//go:embed res/FSEX302.ttf
 //go:embed res/*.png
 var folder embed.FS
 

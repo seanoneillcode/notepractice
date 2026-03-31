@@ -16,6 +16,6 @@ correct note
 cd wrapper
 export PATH=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin:$PATH
 export ANDROID_HOME=~/Library/Android/sdk
-ebitenmobile bind -target android -javapkg com.seanoneillcode.mobiletest -o mobiletest.aar -androidapi 35 .
-cp mobiletest.aar ~/AndroidStudioProjects/MobileTest/app/lib
+ebitenmobile bind -target android -javapkg com.seanoneillcode.mobiletest -o mobiletest.aar -androidapi 30 .
+cp mobiletest.aar ~/AndroidStudioProjects/NotePractice2/app/lib
 ```
