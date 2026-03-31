@@ -10,8 +10,8 @@ type buttons struct {
 }
 
 func NewButtons() *buttons {
-	topRow := newButtonRow(Vector2{X: margin + noteButtonSharpsOffset, Y: unit * 14.5}, []string{"C", "D", "", "F", "G", "A"})
-	bottomRow := newButtonRow(Vector2{X: margin, Y: unit * 16.5}, []string{"C", "D", "E", "F", "G", "A", "B"})
+	topRow := newButtonRow(Vector2{X: margin + noteButtonSharpsOffset, Y: unit*14.5 + offsetY}, []string{"C", "D", "", "F", "G", "A"})
+	bottomRow := newButtonRow(Vector2{X: margin, Y: unit*16.5 + offsetY}, []string{"C", "D", "E", "F", "G", "A", "B"})
 	allButtons := append(topRow, bottomRow...)
 	return &buttons{
 		topRow:     topRow,

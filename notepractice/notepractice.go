@@ -29,6 +29,7 @@ const (
 	noteButtonWidth        = 36
 	buttonMargin           = 2
 	topButtonMargin        = 15
+	offsetY                = 10
 )
 
 const scale = 1
@@ -161,20 +162,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawText(screen, fmt.Sprintf("time: %d", int(g.session.timer)), Vector2{X: 160, Y: 22}, textColorLight) // textColorLight
 
 	// treble
-	g.drawStave(screen, unit*3)
+	g.drawStave(screen, unit*3+offsetY)
 
 	// bass
-	g.drawStave(screen, unit*9)
+	g.drawStave(screen, unit*9+offsetY)
 
 	// draw clefs
-	g.drawImage(screen, "trebleClef", Vector2{X: margin, Y: 60})
-	g.drawImage(screen, "bassClef", Vector2{X: margin, Y: 262})
+	g.drawImage(screen, "trebleClef", Vector2{X: margin, Y: 60 + offsetY})
+	g.drawImage(screen, "bassClef", Vector2{X: margin, Y: 262 + offsetY})
 
 	// draw note(s)
 	g.drawNote(screen, g.session)
 
 	// draw note buttons
-	g.drawRect(screen, Vector2{X: 0, Y: unit * 14.5}, Vector2{X: screenWidth, Y: unit * 6}, buttonBackgroundColor)
+	g.drawRect(screen, Vector2{X: 0, Y: unit*14.5 + offsetY}, Vector2{X: screenWidth, Y: unit*6 + offsetY}, buttonBackgroundColor)
 	for _, b := range g.buttons.allButtons {
 		b.draw(screen, g)
 	}
@@ -185,7 +186,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260})
 	}
 
-	g.drawRect(screen, Vector2{Y: unit * 18.5}, Vector2{X: screenWidth, Y: unit * 3}, darkHeaderColor)
+	g.drawRect(screen, Vector2{Y: unit*18.5 + offsetY}, Vector2{X: screenWidth, Y: unit*3 + offsetY}, darkHeaderColor)
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {
@@ -230,16 +231,16 @@ func (g *Game) drawNote(screen *ebiten.Image, session *session) {
 		drawExtraLine = session.index > 11 || session.index == 0
 	}
 
-	g.drawImage(screen, "note", Vector2{X: 180, Y: float64(ypos)})
+	g.drawImage(screen, "note", Vector2{X: 180, Y: float64(ypos + offsetY)})
 
 	if drawExtraLine {
-		g.drawImage(screen, "extraLine", Vector2{X: 174, Y: float64(ypos + 11)})
+		g.drawImage(screen, "extraLine", Vector2{X: 174, Y: float64(ypos + 11 + offsetY)})
 	}
 
 	switch session.sharpFlat {
 	case "sharp":
-		g.drawImage(screen, "sharp", Vector2{X: 152, Y: float64(ypos - 11)})
+		g.drawImage(screen, "sharp", Vector2{X: 152, Y: float64(ypos - 11 + offsetY)})
 	case "flat":
-		g.drawImage(screen, "flat", Vector2{X: 152, Y: float64(ypos - 20)})
+		g.drawImage(screen, "flat", Vector2{X: 152, Y: float64(ypos - 20 + offsetY)})
 	}
 }
