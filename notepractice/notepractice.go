@@ -28,8 +28,8 @@ const (
 
 const scale = 1
 
-var timerRect = Rect{pos: Vector2{X: 12, Y: 12}, size: Vector2{X: unit * 2, Y: unit}}
-var scoreRect = Rect{pos: Vector2{X: unit * 3.6, Y: 16}, size: Vector2{X: unit * 2, Y: unit}}
+var timerRect = Rect{pos: Vector2{X: 12, Y: 12}, size: Vector2{X: unit * 2, Y: unit + 4}}
+var scoreRect = Rect{pos: Vector2{X: unit * 3.6, Y: 16}, size: Vector2{X: unit * 2, Y: unit + 4}}
 
 type Game struct {
 	images map[string]*ebiten.Image
@@ -63,7 +63,6 @@ func NewGame() *Game {
 			"bassClef":            LoadImage("res/bass-clef.png"),
 			"line":                LoadImage("res/line.png"),
 			"extraLine":           LoadImage("res/extra-line.png"),
-			"guideButton":         LoadImage("res/guide-button.png"),
 			"noteA":               LoadImage("res/noteA.png"),
 			"noteB":               LoadImage("res/noteB.png"),
 			"noteC":               LoadImage("res/noteC.png"),
@@ -77,13 +76,16 @@ func NewGame() *Game {
 			"guideBass":           LoadImage("res/guide-bass.png"),
 			"text-source":         LoadImage("res/text-source.png"),
 			"numbers":             LoadImage("res/numbers.png"),
+			"timeButton":          LoadImage("res/time-button.png"),
+			"scoreButton":         LoadImage("res/score-button.png"),
+			"guideButtonMin":      LoadImage("res/guide-button-min.png"),
 		},
 		inputHandler: NewInputHandler(),
 		session:      NewSession(),
 		buttons:      NewButtons(),
 		showGuide:    false,
 		mode:         "menu",
-		lastScore:    55,
+		lastScore:    0,
 	}
 
 	g.session.reset()
@@ -123,12 +125,12 @@ func (g *Game) Update() error {
 				g.showGuide = !g.showGuide
 			}
 			if isPointInRect(g.inputHandler.pos, timerRect.pos.X, timerRect.pos.Y, timerRect.size.X, timerRect.size.Y) {
-				g.session.reset()
-				g.buttons.reset(g.session)
-			}
-			if isPointInRect(g.inputHandler.pos, scoreRect.pos.X, scoreRect.pos.Y, scoreRect.size.X, scoreRect.size.Y) {
 				g.mode = menuMode
 				g.lastScore = g.session.score
+			}
+			if isPointInRect(g.inputHandler.pos, scoreRect.pos.X, scoreRect.pos.Y, scoreRect.size.X, scoreRect.size.Y) {
+				g.session.reset()
+				g.buttons.reset(g.session)
 			}
 		}
 		if g.inputHandler.releasedInput && g.clickTimer <= 0 {
@@ -182,20 +184,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkColor)
-	// g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
-	g.drawText(screen, "?", Vector2{X: 232, Y: 22}, beigeColor, 1)
+	// g.drawText(screen, "?", Vector2{X: 232, Y: 22}, beigeColor, 1)
+	g.drawImage(screen, "guideButtonMin", Vector2{X: 234, Y: 15})
 
 	// drawScore
 	timeValue := g.session.timer
 	if timeValue == 120 {
 		timeValue = 119
 	}
-	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(timeValue/60), int(timeValue)%60), Vector2{X: margin, Y: 22}, beigeColor, 1)
+	g.drawImage(screen, "timeButton", Vector2{X: 9, Y: 15})
+	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(timeValue/60), int(timeValue)%60), Vector2{X: margin, Y: 21}, beigeColor, 1)
 	var offsetScoreText float64 = 0
 	if g.session.score > 9 {
 		offsetScoreText = -4
 	}
-	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4 + offsetScoreText, Y: 22}, beigeColor, 1)
+	g.drawImage(screen, "scoreButton", Vector2{X: 123, Y: 15})
+	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4 + offsetScoreText, Y: 21}, beigeColor, 1)
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
