@@ -68,3 +68,41 @@ func (g *Game) drawText(screen *ebiten.Image, str string, pos Vector2, color col
 		}
 	}
 }
+
+var (
+	textNumbersCharacterImages = map[rune]*ebiten.Image{}
+)
+
+func (g *Game) drawNumbers(screen *ebiten.Image, str string, pos Vector2, color color.Color) {
+	op := &ebiten.DrawImageOptions{}
+	op.ColorScale.ScaleWithColor(color)
+	op.GeoM.Translate(pos.X, pos.Y)
+
+	const (
+		cw = 16
+		ch = 24
+	)
+	for _, c := range str {
+		s, ok := textNumbersCharacterImages[c]
+		if !ok {
+			cval := int(c)
+			index := -1
+			if cval > 47 && cval < 58 {
+				index = int(c) - 48
+			}
+			if c == ' ' {
+				op.GeoM.Translate(float64((cw - 5)), 0)
+			}
+			if index != -1 {
+				sx := index * cw
+				rect := image.Rect(sx, 0, sx+cw-1, ch-1)
+				s = g.images["numbers"].SubImage(rect).(*ebiten.Image)
+				textNumbersCharacterImages[c] = s
+			}
+		}
+		if s != nil {
+			op.GeoM.Translate(float64((cw)), float64(0))
+			screen.DrawImage(s, op)
+		}
+	}
+}

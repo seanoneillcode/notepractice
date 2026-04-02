@@ -94,23 +94,22 @@ var imageNames = map[string]string{
 
 func (b *button) draw(screen *ebiten.Image, g *Game) {
 	image := "noteButton"
-	textColor := textColorDark
+	textColor := darkColor
 	var textOffset float64 = 0
 	if b.state == "correct" {
 		image = "noteButtonCorrect"
-		textColor = coloredButtonTextColor
+		textColor = yellowColor
 	}
 	if b.state == "incorrect" {
 		image = "noteButtonIncorrect"
-		textColor = coloredButtonTextColor
+		textColor = yellowColor
 	}
 	if b.state == "actual" {
 		image = "noteButtonActual"
-		textColor = coloredButtonTextColor
+		textColor = yellowColor
 	}
 	if b.state == "pressed" {
 		image = "noteButtonPressed"
-		// textColor = coloredButtonTextColor
 		textOffset = 4
 	}
 

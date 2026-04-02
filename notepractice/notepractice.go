@@ -8,18 +8,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-var darkHeaderColor = color.RGBA{20, 24, 26, 255}
-
-// var clearColor = color.RGBA{223, 224, 232, 255}
-// var buttonBackgroundColor = color.RGBA{163, 167, 194, 255}
-var textColorLight = color.RGBA{247, 240, 221, 255}
-var textColorDark = color.RGBA{27, 21, 23, 255}
-
-// alt soft theme
-var coloredButtonTextColor = color.RGBA{255, 238, 131, 255}
-var buttonBackgroundColor = color.RGBA{157, 167, 173, 255}
-
-var clearColor = color.RGBA{234, 227, 208, 255}
+var beigeColor = color.RGBA{247, 240, 221, 255}
+var darkColor = color.RGBA{27, 21, 23, 255}
+var blackColor = color.RGBA{234, 227, 208, 255}
+var brownColor = color.RGBA{111, 84, 77, 255}
+var yellowColor = color.RGBA{255, 238, 131, 255}
 
 const (
 	unit                   = 30
@@ -80,6 +73,7 @@ func NewGame() *Game {
 			"guideTreble":         LoadImage("res/guide-treble.png"),
 			"guideBass":           LoadImage("res/guide-bass.png"),
 			"text-source":         LoadImage("res/text-source.png"),
+			"numbers":             LoadImage("res/numbers.png"),
 		},
 		inputHandler: NewInputHandler(),
 		session:      NewSession(),
@@ -173,15 +167,15 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
-	screen.Fill(clearColor)
+	screen.Fill(blackColor)
 
 	// drawHeader
-	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkHeaderColor)
+	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkColor)
 	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
 
 	// drawScore
-	g.drawText(screen, fmt.Sprintf("score: %d", g.session.score), Vector2{X: margin, Y: 22}, textColorLight, 1)                                    // textColorLight
-	g.drawText(screen, fmt.Sprintf("time: %dm %2ds", int(g.session.timer/60), int(g.session.timer)%60), Vector2{X: 100, Y: 22}, textColorLight, 1) // textColorLight
+	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(g.session.timer/60), int(g.session.timer)%60), Vector2{X: margin, Y: 22}, beigeColor, 1) // textColorLight
+	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4, Y: 22}, beigeColor, 1)                                    // textColorLight
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
@@ -197,7 +191,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawNote(screen, g.session)
 
 	// draw note buttons
-	g.drawRect(screen, Vector2{X: 0, Y: unit*14.5 + offsetY}, Vector2{X: screenWidth, Y: unit*6 + offsetY}, buttonBackgroundColor)
+	g.drawRect(screen, Vector2{Y: unit*14.5 + offsetY}, Vector2{X: screenWidth, Y: unit*9 + offsetY}, darkColor)
+
 	for _, b := range g.buttons.allButtons {
 		b.draw(screen, g)
 	}
@@ -208,17 +203,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.drawImage(screen, "guideBass", Vector2{X: 90, Y: 260 + offsetY})
 	}
 
-	g.drawRect(screen, Vector2{Y: unit*18.5 + offsetY}, Vector2{X: screenWidth, Y: unit*3 + offsetY}, darkHeaderColor)
+	g.drawRect(screen, Vector2{Y: unit*18.5 + offsetY}, Vector2{X: screenWidth, Y: unit*3 + offsetY}, darkColor)
 
 	if g.mode == menuMode {
-		g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: screenHeight}, darkHeaderColor)
-		var scoreOffset float64 = 24
-		if g.lastScore > 9 {
-			scoreOffset = 12
-		}
-		g.drawText(screen, fmt.Sprintf("%d", g.lastScore), Vector2{X: unit*2 + scoreOffset, Y: unit * 6}, textColorLight, 4)
+		g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: screenHeight}, darkColor)
 		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 4, Y: unit * 12})
+		if g.lastScore > 0 {
+			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 14}, 32, brownColor)
+			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 11}, 32, blackColor)
+			var scoreOffset float64 = 20
+			if g.lastScore > 9 {
+				scoreOffset = 12
+			}
+			g.drawNumbers(screen, fmt.Sprintf("%d", g.lastScore), Vector2{X: unit*3 + scoreOffset, Y: unit * 6}, darkColor)
+		}
 	}
+}
+
+func (g *Game) drawCircle(screen *ebiten.Image, pos Vector2, radius float32, color color.Color) {
+	vector.FillCircle(screen, float32(pos.X), float32(pos.Y), radius, color, false)
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {
@@ -255,18 +258,25 @@ func (g *Game) drawStave(screen *ebiten.Image, startY float64) {
 func (g *Game) drawNote(screen *ebiten.Image, session *session) {
 	drawExtraLine := false
 	ypos := 0
+	extralineOffset := 0
 	if session.trebleBass == "treble" {
 		ypos = 200 - (session.index * 12)
 		drawExtraLine = session.index > 11 || session.index == 0
+		if session.index == 13 {
+			extralineOffset = 12
+		}
 	} else {
 		ypos = 380 - (session.index * 12)
 		drawExtraLine = session.index > 11 || session.index == 0
+		if session.index == 13 {
+			extralineOffset = 12
+		}
 	}
 
 	g.drawImage(screen, "note", Vector2{X: 180, Y: float64(ypos + offsetY)})
 
 	if drawExtraLine {
-		g.drawImage(screen, "extraLine", Vector2{X: 174, Y: float64(ypos + 11 + offsetY)})
+		g.drawImage(screen, "extraLine", Vector2{X: 174, Y: float64(ypos + 11 + offsetY + extralineOffset)})
 	}
 
 	switch session.sharpFlat {
