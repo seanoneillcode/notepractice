@@ -45,6 +45,11 @@ func LoadFont(fileName string) *text.GoTextFace {
 	return fontFace
 }
 
+type Rect struct {
+	pos  Vector2
+	size Vector2
+}
+
 type Vector2 struct {
 	X float64
 	Y float64

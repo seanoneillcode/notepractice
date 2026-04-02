@@ -28,6 +28,9 @@ const (
 
 const scale = 1
 
+var timerRect = Rect{pos: Vector2{X: 12, Y: 12}, size: Vector2{X: unit * 2, Y: unit}}
+var scoreRect = Rect{pos: Vector2{X: unit * 3.6, Y: 16}, size: Vector2{X: unit * 2, Y: unit}}
+
 type Game struct {
 	images map[string]*ebiten.Image
 
@@ -80,7 +83,7 @@ func NewGame() *Game {
 		buttons:      NewButtons(),
 		showGuide:    false,
 		mode:         "menu",
-		lastScore:    0,
+		lastScore:    55,
 	}
 
 	g.session.reset()
@@ -118,6 +121,14 @@ func (g *Game) Update() error {
 			// is clicking on guide button
 			if isPointInRect(g.inputHandler.pos, 232, 12, 32, 26) {
 				g.showGuide = !g.showGuide
+			}
+			if isPointInRect(g.inputHandler.pos, timerRect.pos.X, timerRect.pos.Y, timerRect.size.X, timerRect.size.Y) {
+				g.session.reset()
+				g.buttons.reset(g.session)
+			}
+			if isPointInRect(g.inputHandler.pos, scoreRect.pos.X, scoreRect.pos.Y, scoreRect.size.X, scoreRect.size.Y) {
+				g.mode = menuMode
+				g.lastScore = g.session.score
 			}
 		}
 		if g.inputHandler.releasedInput && g.clickTimer <= 0 {
@@ -171,11 +182,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkColor)
-	g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
+	// g.drawImage(screen, "guideButton", Vector2{X: 232, Y: 12})
+	g.drawText(screen, "?", Vector2{X: 232, Y: 22}, beigeColor, 1)
 
 	// drawScore
-	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(g.session.timer/60), int(g.session.timer)%60), Vector2{X: margin, Y: 22}, beigeColor, 1) // textColorLight
-	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4, Y: 22}, beigeColor, 1)                                    // textColorLight
+	timeValue := g.session.timer
+	if timeValue == 120 {
+		timeValue = 119
+	}
+	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(timeValue/60), int(timeValue)%60), Vector2{X: margin, Y: 22}, beigeColor, 1)
+	var offsetScoreText float64 = 0
+	if g.session.score > 9 {
+		offsetScoreText = -4
+	}
+	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4 + offsetScoreText, Y: 22}, beigeColor, 1)
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
