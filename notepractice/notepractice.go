@@ -11,8 +11,8 @@ import (
 var beigeColor = color.RGBA{247, 240, 221, 255}
 var darkColor = color.RGBA{27, 21, 23, 255}
 var blackColor = color.RGBA{234, 227, 208, 255}
-var brownColor = color.RGBA{111, 84, 77, 255}
 var yellowColor = color.RGBA{255, 238, 131, 255}
+var magicColor = color.RGBA{226, 21, 212, 255}
 
 const (
 	unit                   = 30
@@ -24,6 +24,9 @@ const (
 	buttonMargin           = 2
 	topButtonMargin        = 15
 	offsetY                = 10
+
+	magicSaturation = 0.93
+	magicValue      = 0.95
 )
 
 const scale = 1
@@ -40,8 +43,12 @@ type Game struct {
 	clickTimer   float64
 	showGuide    bool
 
-	lastScore int
-	mode      string // running, menu
+	lastScore  int
+	bestScore  int
+	mode       string // running, menu
+	timeOption int
+
+	magicHue float64
 }
 
 const runningMode = "running"
@@ -86,23 +93,43 @@ func NewGame() *Game {
 		showGuide:    false,
 		mode:         "menu",
 		lastScore:    0,
+		bestScore:    0,
+		magicHue:     300,
 	}
 
-	g.session.reset()
+	g.session.reset(getTime(g.timeOption))
 	g.buttons.reset(g.session)
 
 	return g
 }
 
 func (g *Game) Update() error {
+	g.magicHue += 0.01666666 * 200
+	if g.magicHue > 359 {
+		g.magicHue = 0
+	}
+	red, green, blue := hsvToRGB(g.magicHue, magicSaturation, magicValue)
+	magicColor = color.RGBA{R: red, G: green, B: blue, A: 255}
+
 	g.inputHandler.update()
 	if g.mode == menuMode {
 		if g.inputHandler.releasedInput {
 			// is clicking on start button
-			if isPointInRect(g.inputHandler.pos, unit*2-4, unit*12, 160, 52) {
-				g.mode = runningMode
-				g.session.reset()
-				g.buttons.reset(g.session)
+			if isPointInRect(g.inputHandler.pos, unit*2-3, unit*8, 160, 52) {
+				g.startGame()
+			}
+			// time option buttons 28x22  unitX 2.5 unitY 12
+			if isPointInRect(g.inputHandler.pos, unit*2.5, unit*12, 28, 22) {
+				g.timeOption = 0
+			}
+			if isPointInRect(g.inputHandler.pos, unit*3.5, unit*12, 28, 22) {
+				g.timeOption = 1
+			}
+			if isPointInRect(g.inputHandler.pos, unit*4.5, unit*12, 28, 22) {
+				g.timeOption = 2
+			}
+			if isPointInRect(g.inputHandler.pos, unit*5.5, unit*12, 28, 22) {
+				g.timeOption = 3
 			}
 		}
 	}
@@ -111,6 +138,9 @@ func (g *Game) Update() error {
 		if g.session.timer < 1 {
 			g.mode = menuMode
 			g.lastScore = g.session.score
+			if g.lastScore >= g.bestScore {
+				g.bestScore = g.lastScore
+			}
 		}
 		if g.clickTimer > 0 {
 			g.clickTimer = g.clickTimer - 0.016
@@ -124,13 +154,13 @@ func (g *Game) Update() error {
 			if isPointInRect(g.inputHandler.pos, 232, 12, 32, 26) {
 				g.showGuide = !g.showGuide
 			}
+			// click on timer
 			if isPointInRect(g.inputHandler.pos, timerRect.pos.X, timerRect.pos.Y, timerRect.size.X, timerRect.size.Y) {
-				g.mode = menuMode
-				g.lastScore = g.session.score
+				g.resetBackToMenu()
 			}
+			// click on score
 			if isPointInRect(g.inputHandler.pos, scoreRect.pos.X, scoreRect.pos.Y, scoreRect.size.X, scoreRect.size.Y) {
-				g.session.reset()
-				g.buttons.reset(g.session)
+				g.resetBackToMenu()
 			}
 		}
 		if g.inputHandler.releasedInput && g.clickTimer <= 0 {
@@ -178,13 +208,29 @@ func (g *Game) Update() error {
 	return nil
 }
 
+func (g *Game) startGame() {
+	g.mode = runningMode
+	g.session.reset(getTime(g.timeOption))
+	g.buttons.reset(g.session)
+}
+
+func (g *Game) resetBackToMenu() {
+	g.mode = menuMode
+	g.lastScore = g.session.score
+	if g.lastScore >= g.bestScore {
+		g.bestScore = g.lastScore
+	}
+	g.clickTimer = 0
+	g.session.reset(getTime(g.timeOption))
+	g.buttons.reset(g.session)
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(blackColor)
 
 	// drawHeader
 	g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: 40}, darkColor)
-	// g.drawText(screen, "?", Vector2{X: 232, Y: 22}, beigeColor, 1)
 	g.drawImage(screen, "guideButtonMin", Vector2{X: 234, Y: 15})
 
 	// drawScore
@@ -231,21 +277,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if g.mode == menuMode {
 		g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: screenHeight}, darkColor)
-		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 3, Y: unit * 12})
-		if g.lastScore > 0 {
-			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 14}, 32, brownColor)
-			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 11}, 32, blackColor)
-			var scoreOffset float64 = 20
-			if g.lastScore > 9 {
-				scoreOffset = 12
-			}
-			g.drawNumbers(screen, fmt.Sprintf("%d", g.lastScore), Vector2{X: unit*3 + scoreOffset, Y: unit * 6}, darkColor)
-		}
-	}
-}
+		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 3, Y: unit * 8})
 
-func (g *Game) drawCircle(screen *ebiten.Image, pos Vector2, radius float32, color color.Color) {
-	vector.FillCircle(screen, float32(pos.X), float32(pos.Y), radius, color, false)
+		if g.lastScore > 0 {
+			g.drawText(screen, fmt.Sprintf("last: %d", g.lastScore), Vector2{X: screenWidth/2 - unit - 10, Y: unit * 3}, beigeColor, 1)
+		}
+		if g.bestScore > 0 {
+			g.drawText(screen, fmt.Sprintf("best: %d", g.bestScore), Vector2{X: screenWidth/2 - unit - 10, Y: unit * 4}, magicColor, 1)
+		}
+
+		buttonOffset := g.timeOption * unit
+
+		g.drawImage(screen, "scoreButton", Vector2{X: unit*2.5 + 2 + float64(buttonOffset), Y: unit*12 - 5})
+		g.drawText(screen, "1m", Vector2{X: unit * 2.5, Y: unit * 12}, beigeColor, 1)
+		g.drawText(screen, "2m", Vector2{X: unit * 3.5, Y: unit * 12}, beigeColor, 1)
+		g.drawText(screen, "4m", Vector2{X: unit * 4.5, Y: unit * 12}, beigeColor, 1)
+		g.drawText(screen, "8m", Vector2{X: unit * 5.5, Y: unit * 12}, beigeColor, 1)
+	}
 }
 
 func (g *Game) drawRect(screen *ebiten.Image, pos Vector2, size Vector2, color color.Color) {

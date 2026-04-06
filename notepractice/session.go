@@ -25,11 +25,26 @@ func (s *session) update() {
 	s.timer = s.timer - 0.01666666 // ebiten is fixed update
 }
 
-func (s *session) reset() {
+func (s *session) reset(timer float32) {
 	s.state = "reading"
-	s.timer = 120 // 2 mins
+	s.timer = timer
 	s.score = 0
+	s.canScore = true
 	s.nextNote()
+}
+
+func getTime(timeOption int) float32 {
+	switch timeOption {
+	case 0:
+		return 60
+	case 1:
+		return 60 * 2
+	case 2:
+		return 60 * 4
+	case 3:
+		return 60 * 8
+	}
+	return 999
 }
 
 func (s *session) nextNote() {
