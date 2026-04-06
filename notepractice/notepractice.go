@@ -192,14 +192,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if timeValue == 120 {
 		timeValue = 119
 	}
-	g.drawImage(screen, "timeButton", Vector2{X: 9, Y: 15})
-	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(timeValue/60), int(timeValue)%60), Vector2{X: margin, Y: 21}, beigeColor, 1)
+	g.drawImage(screen, "timeButton", Vector2{X: 13, Y: 15})
+	g.drawText(screen, fmt.Sprintf("%dm %2ds", int(timeValue/60), int(timeValue)%60), Vector2{X: margin + 4, Y: 21}, beigeColor, 1)
 	var offsetScoreText float64 = 0
 	if g.session.score > 9 {
 		offsetScoreText = -4
 	}
-	g.drawImage(screen, "scoreButton", Vector2{X: 123, Y: 15})
-	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 4 + offsetScoreText, Y: 21}, beigeColor, 1)
+	g.drawImage(screen, "scoreButton", Vector2{X: 122, Y: 15})
+	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 3 + offsetScoreText, Y: 21}, beigeColor, 1)
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
@@ -231,7 +231,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if g.mode == menuMode {
 		g.drawRect(screen, Vector2{}, Vector2{X: screenWidth, Y: screenHeight}, darkColor)
-		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 4, Y: unit * 12})
+		g.drawImage(screen, "startButton", Vector2{X: unit*2 - 3, Y: unit * 12})
 		if g.lastScore > 0 {
 			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 14}, 32, brownColor)
 			g.drawCircle(screen, Vector2{X: screenWidth/2 - 1, Y: unit*6 + 11}, 32, blackColor)
