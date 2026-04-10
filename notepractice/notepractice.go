@@ -32,7 +32,7 @@ const (
 const scale = 1
 
 var timerRect = Rect{pos: Vector2{X: 12, Y: 12}, size: Vector2{X: unit * 2, Y: unit + 4}}
-var scoreRect = Rect{pos: Vector2{X: unit * 3.6, Y: 16}, size: Vector2{X: unit * 2, Y: unit + 4}}
+var scoreRect = Rect{pos: Vector2{X: 196, Y: 16}, size: Vector2{X: 30, Y: unit + 4}}
 
 type Game struct {
 	images map[string]*ebiten.Image
@@ -245,8 +245,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.session.score > 9 {
 		offsetScoreText = -4
 	}
-	g.drawImage(screen, "scoreButton", Vector2{X: 122, Y: 15})
-	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 3 + offsetScoreText, Y: 21}, beigeColor, 1)
+	g.drawImage(screen, "scoreButton", Vector2{X: 198, Y: 15})
+	g.drawText(screen, fmt.Sprintf("%d", g.session.score), Vector2{X: unit*4 + 79 + offsetScoreText, Y: 21}, beigeColor, 1)
 
 	// treble
 	g.drawStave(screen, unit*3+offsetY)
