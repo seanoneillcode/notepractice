@@ -10,7 +10,7 @@ line guide out of stave notes
 only score one point per touch
 correct note
 
-## deploying the app
+## deploying the app for android
 
 ```
 cd wrapper
@@ -18,4 +18,11 @@ export PATH=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin:$PA
 export ANDROID_HOME=~/Library/Android/sdk
 ebitenmobile bind -target android -javapkg com.seanoneillcode.mobiletest -o mobiletest.aar -androidapi 30 .
 cp mobiletest.aar ~/AndroidStudioProjects/NotePractice2/app/lib
+```
+
+## deploying the app to web assembly
+
+```
+env GOOS=js GOARCH=wasm go build -o notepractice.wasm github.com/seanoneillcode/mobiletest
+cp $(go env GOROOT)/lib/wasm/wasm_exec.js .
 ```
