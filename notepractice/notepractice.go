@@ -172,13 +172,14 @@ func (g *Game) Update() error {
 					if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {
 						b.state = "correct"
 						g.session.score = g.session.score + 1
+						g.clickTimer = 0.2
 					} else {
 						b.state = "incorrect"
+						g.clickTimer = 1.0
 					}
 				}
 			}
 			if clickedAnyButton {
-				g.clickTimer = 1.0
 				for _, b := range g.buttons.allButtons {
 					if b.state == "normal" {
 						if b.note == g.session.currentNote && b.sharpFlat == g.session.sharpFlat {

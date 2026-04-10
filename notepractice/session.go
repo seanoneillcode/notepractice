@@ -50,23 +50,29 @@ func getTime(timeOption int) float32 {
 func (s *session) nextNote() {
 	s.trebleBass = randString([]string{"treble", "bass"})
 	s.sharpFlat = randString([]string{"nothing", "sharp", "flat"})
-	notes := []string{"A", "B", "C", "D", "E", "F", "G"}
-
-	s.index = rand.Intn(7 * 2) // low c, two octaves
-
-	if s.trebleBass == "treble" {
-		noteIndex := (s.index + 2) % 7
-		s.currentNote = notes[noteIndex]
-	} else {
-		noteIndex := (s.index + 4) % 7
-		s.currentNote = notes[noteIndex]
-	}
+	s.currentNote = s.pickNewNote()
 	if s.sharpFlat == "sharp" && (s.currentNote == "E" || s.currentNote == "B") {
 		s.sharpFlat = "nothing"
 	}
 	if s.sharpFlat == "flat" && (s.currentNote == "A" || s.currentNote == "F") {
 		s.sharpFlat = "nothing"
 	}
+}
+
+func (s *session) pickNewNote() string {
+	notes := []string{"A", "B", "C", "D", "E", "F", "G"}
+	noteIndex := 0
+	newNote := s.currentNote
+	for i := 0; i < 9 && s.currentNote == newNote; i++ {
+		s.index = rand.Intn(7 * 2) // low c, two octaves
+		if s.trebleBass == "treble" {
+			noteIndex = (s.index + 2) % 7
+		} else {
+			noteIndex = (s.index + 4) % 7
+		}
+		newNote = notes[noteIndex]
+	}
+	return newNote
 }
 
 func randString(options []string) string {
